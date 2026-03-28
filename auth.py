@@ -7,9 +7,11 @@ import hashlib
 from Database import get_connection
 
 VALID_AGE_GROUPS = ["Under 13", "13-17", "18-25", "26+"]
+AGE_MAP = {str(i+1): age for i, age in enumerate(VALID_AGE_GROUPS)}
 
 
 def _hash_password(password: str) -> str:
+    """Return SHA-256 hash of the password."""
     return hashlib.sha256(password.encode()).hexdigest()
 
 
@@ -72,3 +74,56 @@ def login_user(username: str, password: str):
         return False, f"Login failed: {e}", None
     finally:
         conn.close()
+
+
+# -----------------------
+# CLI helper functions
+# -----------------------
+def cli_register():
+    """Run a command-line registration prompt."""
+    print("\n=== REGISTER NEW USER ===\n")
+    username = input("Enter username: ").strip()
+    password = input("Enter password (min 6 chars): ").strip()
+    email = input("Enter email (optional): ").strip() or None
+
+    # Show age group choices
+    print("\nSelect age group:")
+    for key, val in AGE_MAP.items():
+        print(f"{key}. {val}")
+    choice = input("Choose (1-4): ").strip()
+
+    age_group = AGE_MAP.get(choice)
+    if not age_group:
+        print("Invalid choice. Registration cancelled.")
+        return
+
+    success, msg = register_user(username, password, age_group, email)
+    print(msg)
+
+
+def cli_login():
+    """Run a command-line login prompt."""
+    print("\n=== USER LOGIN ===\n")
+    username = input("Username: ").strip()
+    password = input("Password: ").strip()
+
+    success, msg, user_id = login_user(username, password)
+    print(msg)
+    return user_id if success else None
+
+
+# -----------------------
+# Optional: test flow
+# -----------------------
+if __name__ == "__main__":
+    print("Welcome! Choose an option:")
+    print("1. Register")
+    print("2. Login")
+    choice = input("Enter 1 or 2: ").strip()
+
+    if choice == "1":
+        cli_register()
+    elif choice == "2":
+        cli_login()
+    else:
+        print("Invalid option.")
