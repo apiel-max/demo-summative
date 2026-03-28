@@ -6,8 +6,9 @@ Handles user registration and login using the local SQLite database.
 import hashlib
 from Database import get_connection
 
+# Valid age groups and mapping from number input
 VALID_AGE_GROUPS = ["Under 13", "13-17", "18-25", "26+"]
-AGE_MAP = {str(i+1): age for i, age in enumerate(VALID_AGE_GROUPS)}
+AGE_MAP = {str(i + 1): age for i, age in enumerate(VALID_AGE_GROUPS)}
 
 
 def _hash_password(password: str) -> str:
@@ -16,10 +17,7 @@ def _hash_password(password: str) -> str:
 
 
 def register_user(username: str, password: str, age_group: str, email: str = None):
-    """
-    Register a new user.
-    Returns (True, success_message) or (False, error_message).
-    """
+    """Register a new user. Returns (success, message)."""
     if not username or not password or not age_group:
         return False, "Username, password, and age group are required."
 
@@ -47,10 +45,7 @@ def register_user(username: str, password: str, age_group: str, email: str = Non
 
 
 def login_user(username: str, password: str):
-    """
-    Verify credentials.
-    Returns (True, message, user_id) on success or (False, message, None) on failure.
-    """
+    """Verify credentials. Returns (success, message, user_id)."""
     if not username or not password:
         return False, "Username and password are required.", None
 
@@ -62,13 +57,10 @@ def login_user(username: str, password: str):
             (username,)
         )
         row = cursor.fetchone()
-
         if not row:
             return False, "Username not found.", None
-
         if row["password"] != _hash_password(password):
             return False, "Incorrect password.", None
-
         return True, f"Welcome back, {username}!", row["id"]
     except Exception as e:
         return False, f"Login failed: {e}", None
@@ -76,17 +68,16 @@ def login_user(username: str, password: str):
         conn.close()
 
 
-# -----------------------
-# CLI helper functions
-# -----------------------
+# ----------------------
+# CLI Functions
+# ----------------------
 def cli_register():
-    """Run a command-line registration prompt."""
+    """Interactive CLI registration."""
     print("\n=== REGISTER NEW USER ===\n")
     username = input("Enter username: ").strip()
     password = input("Enter password (min 6 chars): ").strip()
     email = input("Enter email (optional): ").strip() or None
 
-    # Show age group choices
     print("\nSelect age group:")
     for key, val in AGE_MAP.items():
         print(f"{key}. {val}")
@@ -102,7 +93,7 @@ def cli_register():
 
 
 def cli_login():
-    """Run a command-line login prompt."""
+    """Interactive CLI login."""
     print("\n=== USER LOGIN ===\n")
     username = input("Username: ").strip()
     password = input("Password: ").strip()
@@ -112,9 +103,9 @@ def cli_login():
     return user_id if success else None
 
 
-# -----------------------
-# Optional: test flow
-# -----------------------
+# ----------------------
+# Run CLI
+# ----------------------
 if __name__ == "__main__":
     print("Welcome! Choose an option:")
     print("1. Register")
